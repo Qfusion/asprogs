@@ -263,11 +263,12 @@ String @GT_ScoreboardMessage( uint maxlen )
             }
             else
             {
-                // "Name Clan Score Net Ping R"
+                // "Name Clan Score Net Dmg Ping R"
                 entry = "&p " + playerID + " "
                         + ent.client.clanName + " "
                         + ( ent.client.stats.score + ent.client.stats.deaths - ent.client.stats.suicides) + " "
                         + ent.client.stats.score + " "
+						+ ent.client.stats.totalDamageGiven + " "
                         + ent.client.ping + " "
                         + ( ent.client.isReady() ? "1" : "0" ) + " ";
             }
@@ -565,8 +566,8 @@ void GT_InitGametype()
     }
     else
     {
-        G_ConfigString( CS_SCB_PLAYERTAB_LAYOUT, "%n 112 %s 52 %i 40 %i 36 %l 36 %r l1" );
-        G_ConfigString( CS_SCB_PLAYERTAB_TITLES, "Name Clan Score Net Ping R" );
+        G_ConfigString( CS_SCB_PLAYERTAB_LAYOUT, "%n 112 %s 52 %i 40 %i 36 %i 44 %l 36 %r l1" );
+        G_ConfigString( CS_SCB_PLAYERTAB_TITLES, "Name Clan Score Net Dmg Ping R" );
     }
 
     // add commands
