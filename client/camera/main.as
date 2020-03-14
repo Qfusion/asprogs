@@ -4,6 +4,7 @@ namespace Camera {
 
 Cvar cg_thirdPersonAngle( "cg_thirdPersonAngle", "0", CVAR_ARCHIVE );
 Cvar cg_thirdPersonRange( "cg_thirdPersonRange", "70", CVAR_ARCHIVE );
+Cvar cg_furyCameraMode( "cg_furyCameraMode", "0", CVAR_ARCHIVE );
 
 void ThirdPersonOffsetView( Camera @cam ) {
 	Trace tr;
@@ -17,7 +18,7 @@ void ThirdPersonOffsetView( Camera @cam ) {
 	Vec3 chase_dest = cam.origin;
 	chase_dest += cg_thirdPersonRange.value * f * cam.axis.x;
 	chase_dest += cg_thirdPersonRange.value * r * cam.axis.y;
-	chase_dest.z += 8;
+	chase_dest.z += 500;
 
 	// find the spot the player is looking at
 	Vec3 dest = cam.origin + 512.0f * cam.axis.x;
@@ -29,8 +30,11 @@ void ThirdPersonOffsetView( Camera @cam ) {
 	if( dist < 1 ) {
 		dist = 1;
 	}
-	cam.angles[PITCH] = rad2deg( -atan2( stop.z, dist ) );
-	cam.angles[YAW] -= cg_thirdPersonAngle.value;
+	cam.angles[PITCH] = 90;
+	if( cg_furyCameraMode.integer == 0 ) 
+		cam.angles[YAW] -= cg_thirdPersonAngle.value;
+	else 
+		cam.angles[YAW] = 180;
 	cam.angles.anglesToMarix( cam.axis );
 
 	// move towards destination
@@ -45,9 +49,9 @@ void ThirdPersonOffsetView( Camera @cam ) {
 }
 
 void SetupCamera( Camera @cam ) {
-	if( cam.thirdPerson ) {
-		ThirdPersonOffsetView( cam );
-	}
+	cam.thirdPerson = true;
+	cam.drawWeapon = false;
+	ThirdPersonOffsetView( cam );
 }
 
 void SetupRefdef( Camera @cam ) {

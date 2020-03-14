@@ -225,4 +225,8 @@ void PMove( PMove @pm, PlayerState @ps, UserCmd cmd ) {
 	}
 }
 
+Vec3 GetViewAnglesClamp( const PlayerState @playerState ) {
+	return Vec3( 15.0, 0, 0 );
+}
+
 }
