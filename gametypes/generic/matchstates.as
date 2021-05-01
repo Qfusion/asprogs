@@ -187,7 +187,7 @@ void GENERIC_SetUpEndMatch()
 
 bool cheatVarsListInitialized = false;
 int64 lastCheatVarRequestTime = levelTime + 30000;
-int cheackVarChecked = 0;
+uint cheatVarChecked = 0;
 
 class cCheatVar
 {
@@ -196,16 +196,67 @@ class cCheatVar
     bool anyContent;
 }
 
-const int MAX_CHEATVAR_NAMES = 27;
-cCheatVar[] cheatVarNames( MAX_CHEATVAR_NAMES );
+array<cCheatVar> cheatVarNames;
 
 void GENERIC_InitCheatVarsList()
 {
     if ( cheatVarsListInitialized == true )
         return;
 
-    //cheatVarNames[0].name = "orgy_aim_aimbot";
-    //cheatVarNames[0].anyContent = true;
+    if ( G_FileExists( "configs/server/cheatvars.txt" ) )
+    {
+        String config;
+
+        config = G_LoadFile( "configs/server/cheatvars.txt" );
+        if ( config.length() > 0 )
+        {
+            int count = 0;
+            while (true)
+            {
+                String line = config.getToken( count++ );
+                if ( line.empty() )
+                    break;
+
+                uint sep = line.locate( "|", 0 );
+                if ( sep == line.length() )
+                {
+                    G_Print( S_COLOR_YELLOW + "Invalid cheatvar config line: " + line + S_COLOR_WHITE + "\n" );
+                    continue;
+                }
+                else
+                {
+                    cCheatVar var;
+                    var.name = line.substr( 0, sep );
+                    String disallowed = line.substr( sep + 1 );
+                    if ( disallowed == '*' )
+                    {
+                        var.anyContent = true;
+                        cheatVarNames.insertLast(var);
+                    }
+                    else
+                    {
+                        var.anyContent = false;
+                        var.content = disallowed;
+                        cheatVarNames.insertLast(var);
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        String example;
+
+        // the config file doesn't exist or it's empty, create it
+        example =  "// Example cheatvars blocklist\n"
+                 + "// Uncomment a line to use it\n\n"
+                 + "// Completely disallow this variable:\n"
+                 + "// lp_aimbot|*\n\n"
+                 + "// Only disallow one specific value:\n"
+                 + "// cg_thirdPerson|1\n\n";
+        G_WriteFile( "configs/server/cheatvars.txt", example );
+        G_Print( "Created example file for 'configs/server/cheatvars.txt'\n" );
+    }
 
     cheatVarsListInitialized = true;
 }
@@ -222,11 +273,11 @@ void GENERIC_RequestCheatVars()
 
     lastCheatVarRequestTime = levelTime;
 
-    G_CmdExecute( "cvarcheck " + "all \"" + cheatVarNames[cheackVarChecked].name + "\"\n" );
+    G_CmdExecute( "cvarcheck " + "all \"" + cheatVarNames[cheatVarChecked].name + "\"\n" );
 
-    cheackVarChecked++;
-    if ( cheackVarChecked >= MAX_CHEATVAR_NAMES || cheatVarNames[cheackVarChecked].name.len() == 0 )
-        cheackVarChecked = 0;
+    cheatVarChecked++;
+    if ( cheatVarChecked >= cheatVarNames.length() )
+        cheatVarChecked = 0;
 }
 
 void GENERIC_CheatVarResponse( Client @client, String &cmdString, String &argsString, int argc )
@@ -247,7 +298,7 @@ void GENERIC_CheatVarResponse( Client @client, String &cmdString, String &argsSt
     if ( cvarContent.len() > 0 && cvarContent != "not found" )
     {
         // find what was the cvar
-        for ( int i = 0; i < MAX_CHEATVAR_NAMES; i++ )
+        for ( uint i = 0; i < cheatVarNames.length(); i++ )
         {
             if ( cheatVarNames[i].name == cvarName )
             {
